@@ -1,0 +1,39 @@
+#!/bin/sh
+# Helps install voidlinux manually; this assumes you're installing to /dev/sda
+
+cfdisk
+
+fdisk -l /dev/sda
+
+cryptsetup luksFormat /dev/sda2
+
+cryptsetup luksOpen /dev/sda2 voidlinux
+
+vgcreate voidlinux /dev/mapper/voidlinux
+
+lvcreate --name root -L 30G voidlinux
+lvcreate --name swap -L 8G voidlinux
+lvcreate --name home -l 100%FREE voidlinux
+
+mkfs.vfat -F32 /dev/sda1
+mkswap /dev/voidlinux/swap
+mkfs.ext4 /dev/voidlinux/root
+mkfs.ext4 /dev/voidlinux/home
+
+mount /dev/voidlinux/root /mnt
+mkdir -p /mnt/boot/efi
+mkdir -p /mnt/home
+
+mount /dev/sda1 /mnt/boot/efi
+mount /dev/voidlinux/home /mnt/home
+
+cd mnt
+
+for d in dev proc sys; do mkdir "$d"; mount --rbind "/$d" "$d"; done
+
+
+export XBPS_ARCH=x86_64-musl
+
+xbps-install -Sy -R http://alpha.de.repo.voidlinux.org/current/musl -r /mnt base-system lvm2 cryptsetup grub-x86_64-efi neovim NetworkManager dhcpcd sudo
+
+
