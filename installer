@@ -27,7 +27,7 @@ mkdir -p /mnt/home
 mount /dev/sda1 /mnt/boot/efi
 mount /dev/voidlinux/home /mnt/home
 
-cd mnt
+cd /mnt
 
 for d in dev proc sys; do mkdir "$d"; mount --rbind "/$d" "$d"; done
 
